@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "roy-bot"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+streamlit = "^1.36.0"
+openai = "^1.36.0"
+pinecone-client = {extras = ["grpc"], version = "^5.0.0"}
+notion-client = "^2.2.1"
+python-telegram-bot = "^21.4"
+langchain = "^0.2.10"
+pydantic = "^2.8.2"
+pydantic-settings = "^2.3.4"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
