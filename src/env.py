@@ -12,6 +12,7 @@ class AppSettings(BaseSettings):
     TELEGRAM_API_KEY: SecretStr | None = None
     PINECONE_API_KEY: SecretStr | None = None
     OPENAI_API_KEY: SecretStr | None = None
+    REDIS_DSN: SecretStr | None = None
 
     class Config:
         env_file = CWD / ".env"
