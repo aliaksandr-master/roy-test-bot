@@ -1,5 +1,6 @@
 # This is a basic example Blueprint for a Django web service and
 # the PostgreSQL database it connects to.
+version: "1"
 services:
   - type: web # A Python web service named django-app running on a free instance
     plan: free
@@ -8,3 +9,10 @@ services:
     repo: https://github.com/aliaksandr-master/roy-test-bot
     buildCommand: "poetry install"
     startCommand: "python -m streamlit run --server.fileWatcherType=none --server.port=10000 --server.address=0.0.0.0 ./src/app_dash/Home.py"
+
+  - type: redis
+    name: roy-test-bot-redis
+    plan: free
+    region: oregon
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
