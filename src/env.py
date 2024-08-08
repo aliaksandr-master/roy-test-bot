@@ -3,7 +3,6 @@ from pathlib import Path
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings
 
-
 CWD = Path(__file__).parent.parent
 
 

@@ -23,6 +23,96 @@ langchain-community = "^0.2.9"
 beautifulsoup4 = "^4.12.3"
 
 
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.11.1"
+pyright = "^1.1.375"
+ruff = "^0.5.6"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+
+
+[tool.coverage.run]
+branch = true
+plugins = ["covdefaults"]
+
+[tool.ruff]
+line-length = 160
+indent-width = 4
+target-version = "py310"
+preview = true
+exclude = ["src/db_main/alembic/", "scripts", ".venv", ".local", ".cache", ""]
+
+[tool.ruff.lint]
+preview = true
+select = [
+    "E", "F", "W", "C", "I", "N", "UP", "YTT", "ANN", "ASYNC", "TRIO", "B", "C4", "T10", "FA", "ISC", "ICN", "LOG", "G", "PIE", "T20", "PYI", "PT",
+    "Q", "RSE", "RET", "SLF", "SLOT", "SIM", "TCH", "PTH", "TD", "PD", "PL", "FLY", "NPY", "PERF", "FURB", "RUF",
+    # disabled forever:
+    # "A", "COM", "CPY", "EM", "EXE", "INP","INT","ARG","FIX",
+    # TODO: enable it
+    #"S", "BLE", "DTZ", "ERA", "PGH", "TRY",
+]
+extend-unfixable = ["T201"]
+ignore = [
+    "N803", "N806", "N802", "N813", "N818", "N805", "N999", "UP038",
+    "ANN401",
+    "RUF027",
+    "B008",
+    "ISC001",
+    "G004",
+
+    "PT007", "PT005", "PT008",
+    "Q003",
+    "SIM102",
+    "TCH003", "TCH002", "TCH001",
+    "TD003", "TD002",
+    "PLW1514",
+    "PLR0917",
+    "PLR0913",
+    "PLR6301",
+    "PLW2901",
+    "PLC0415",
+    "PLC0414",
+    "PLC0105",
+    "PLR0916",
+    "PLR0914",
+    "PLR0911",
+    "PERF203",
+    "PERF401",
+    "FURB113",
+    "RUF001",
+    "RUF015",
+    "RUF012",
+    "PD901",
+
+    # TODO: enable it
+    "B904", "G202", "PT004", "PT006", "PT011", "PT020", "RET503", "SIM118", "SIM117", "SIM108", "SIM105",
+    "PLR2004", "PLR0912", "RUF029", "RUF002", "RUF003",
+]
+
+[tool.ruff.format]
+preview = true
+quote-style = "preserve"
+indent-style = "space"
+line-ending = "auto"
+docstring-code-format = false
+skip-magic-trailing-comma = false
+
+[tool.ruff.lint.per-file-ignores]
+# Do not perform function call `Depends` in argument defaults;
+# Disabled because it's FastAPI Depency Injection method
+"srv/*" = ["T201"]
+
+
+[tool.vulture]
+min_confidence = 80
+exclude = ["tests/", "src/db_main/alembic/", "srv/", "external/docker.py"]
+ignore_decorators = ["@api_key_v3_router", "@rpc", "@celery_app", "@router", "@users_v3_router", "@api_key_v3_router", "@auth_v3_router"]
+paths = ["src/", "event_analytics/", "external/", "src/", "settings.py"]
+
+[tool.pyright]
+include = ['src']
+exclude = ['src/db_main/alembic/']

@@ -2,13 +2,13 @@ from datetime import datetime
 from typing import TypeVar
 
 import httpx
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup  # type: ignore
 from openai import BaseModel
 
 from src.app_tg_public.llm import PageDoc
 from src.app_tg_public.utils import flatten, run_list
 
-T = TypeVar('T', bound=BaseModel)
+T = TypeVar("T", bound=BaseModel)
 
 
 class RoyBackendSection(BaseModel):
@@ -50,13 +50,13 @@ class RoyBackendSectionMaterial(BaseModel):
             id=str(self.id),
             title=self.title,
             updated_at=self.published_at.isoformat(),
-            url=f'https://roy.team/{self.organization.id}/materials/{self.id}',
-            blocks=[BeautifulSoup(self.content, 'html.parser').text],
+            url=f"https://roy.team/{self.organization.id}/materials/{self.id}",
+            blocks=[BeautifulSoup(self.content or "", "html.parser").text],
         )
 
 
 def roy_backend_auth(request: httpx.Request) -> httpx.Request:
-    request.headers['Authorization'] = 'Bearer 2019|Eml3qUTp5rHB6Th0xmCzHIzqIelDMujytpV0DRll'
+    request.headers["Authorization"] = "Bearer 2019|Eml3qUTp5rHB6Th0xmCzHIzqIelDMujytpV0DRll"
     return request
 
 
@@ -67,9 +67,9 @@ async def roy_backend_get_list(model: type[T], url: str, default: list[T] | None
             # print('>>>', response.status_code, url, json.dumps(response.json(), indent=4))
             response.raise_for_status()
             data = response.json()
-            return [model(**r) for r in data['data']]
+            return [model(**r) for r in data["data"]]
     except Exception:
-        if default is None:
+        if default is not None:
             return default
         raise
 
@@ -80,11 +80,25 @@ async def roy_backend_get_one(model: type[T], url: str) -> T:
         # print('>>>', response.status_code, url, json.dumps(response.json(), indent=4))
         response.raise_for_status()
         data = response.json()
-        return model(**data['data'])
+        return model(**data["data"])
 
 
 async def load_faq_from_roy(organization_id: int, sections: set[int] | None) -> list[PageDoc]:
-    all_sections = await roy_backend_get_list(RoyBackendSection, f'https://api.roy.team/api/kbase/sections?organization_id={organization_id}&sortDirection=asc', [])
-    short_materials_chunks: list[RoyBackendSectionMaterial] = flatten(await run_list([roy_backend_get_list(RoyBackendSectionMaterial, f'https://api.roy.team/api/kbase/materials?organization_id={organization_id}&section={s.id}', []) for s in filter(lambda s: sections is None or s.id in sections, all_sections)], 15))
-    materials = await run_list([roy_backend_get_one(RoyBackendSectionMaterial, f'https://api.roy.team/api/kbase/materials/{sm.id}') for sm in short_materials_chunks], 15)
+    all_sections = await roy_backend_get_list(
+        RoyBackendSection, f"https://api.roy.team/api/kbase/sections?organization_id={organization_id}&sortDirection=asc", []
+    )
+    short_materials_chunks: list[RoyBackendSectionMaterial] = flatten(
+        await run_list(
+            [
+                roy_backend_get_list(
+                    RoyBackendSectionMaterial, f"https://api.roy.team/api/kbase/materials?organization_id={organization_id}&section={s.id}", []
+                )
+                for s in filter(lambda s: sections is None or s.id in sections, all_sections)
+            ],
+            15,
+        )
+    )
+    materials = await run_list(
+        [roy_backend_get_one(RoyBackendSectionMaterial, f"https://api.roy.team/api/kbase/materials/{sm.id}") for sm in short_materials_chunks], 15
+    )
     return [m.to_page_doc() for m in materials]
