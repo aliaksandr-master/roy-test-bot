@@ -32,19 +32,13 @@ def mk_faq_ai_model(pages: list[PageDoc]) -> VectorStoreRetriever:
 
     print('>>> pages count', len(pages))
     for page in pages:
-        metadata = dict(page_id=page.id, page_title=page.title, page_url=page.url)
         for block in page.blocks:
             for txt in text_splitter.split_text(block):
-                docs.append(Document(page_content=txt, metadata=metadata))
+                docs.append(Document(page_content=txt, metadata=dict(id=page.id, title=page.title, url=page.url, updated_at=page.updated_at)))
 
     print('>>> documents count', len(docs))
     vector_store = Chroma.from_documents(documents=docs, embedding=embedder)
-
-    retriever = vector_store.as_retriever(
-        search_type="similarity",
-        search_kwargs={"k": 3},
-    )
-    return retriever
+    return vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 3})
 
 
 PROMPT_SYSTEM = """
@@ -62,7 +56,8 @@ PROMPT_QUESTION = """
 """
 
 
-def load_llm(retriever: VectorStoreRetriever, lang: str = 'english') -> Runnable:
+def mk_chat(pages: list[PageDoc], lang: str = 'english') -> Runnable:
+    retriever = mk_faq_ai_model(pages)
     llm = ChatOpenAI(model="gpt-3.5-turbo-0125", api_key=app_settings.OPENAI_API_KEY.get_secret_value())
     prompt = ChatPromptTemplate.from_messages([
         ("system", PROMPT_SYSTEM.replace('{lang}', lang.upper())),

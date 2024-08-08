@@ -22,10 +22,18 @@ class RoyBackendSection(BaseModel):
     updated_at: datetime
 
 
+class RoyBackendSectionMaterialOrg(BaseModel):
+    id: int
+
+
+class RoyBackendSectionMaterialSection(BaseModel):
+    id: int
+
+
 class RoyBackendSectionMaterial(BaseModel):
     id: int
-    # organization: int
-    # section: str
+    organization: RoyBackendSectionMaterialOrg
+    section: RoyBackendSectionMaterialSection
     # user: str
     type: str
     image: str | None
@@ -42,10 +50,9 @@ class RoyBackendSectionMaterial(BaseModel):
             id=str(self.id),
             title=self.title,
             updated_at=self.published_at.isoformat(),
-            url='',
+            url=f'https://roy.team/{self.organization.id}/materials/{self.id}',
             blocks=[BeautifulSoup(self.content, 'html.parser').text],
         )
-
 
 
 def roy_backend_auth(request: httpx.Request) -> httpx.Request:

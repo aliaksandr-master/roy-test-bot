@@ -4,7 +4,7 @@ from datetime import datetime
 import httpx
 
 from src.app_tg_public.llm import PageDoc
-from src.cache import Cache
+from src.app_tg_public.utils import Cache
 from src.env import app_settings
 
 notion_page_cache = Cache(PageDoc)
