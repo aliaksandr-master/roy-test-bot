@@ -1,4 +1,4 @@
-FROM alxemaster/basic-py312:1.0.0
+FROM alxemaster/basic-py311:1.0.0
 
 COPY --chown=$USER:$USER ./poetry.lock ./pyproject.toml $PROJECT_DIR/
 USER root
