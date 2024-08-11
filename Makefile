@@ -21,4 +21,4 @@ format:
 
 
 app_tg_public:
-	python -m src.app_tg_public.main
+	poetry run python -m src.app_tg_public.main
