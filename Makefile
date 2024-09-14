@@ -9,10 +9,10 @@ dev:
 
 .PHONY: lint
 lint:
-	poetry run ruff check --respect-gitignore --fix --extend-exclude tests ./
-	poetry run ruff format --diff --respect-gitignore
-	poetry run mypy .
-	poetry run pyright src/
+	@poetry run ruff check --respect-gitignore --fix --extend-exclude tests ./
+	@poetry run ruff format --diff --respect-gitignore
+	@poetry run mypy .
+	@poetry run pyright src/
 
 .PHONY: format
 format:

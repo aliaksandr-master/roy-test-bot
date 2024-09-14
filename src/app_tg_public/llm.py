@@ -19,7 +19,10 @@ from src.env import app_settings
 logger = logging.getLogger(__name__)
 
 
-class PageDoc(BaseModel):
+Tfaq = Runnable[dict[str, str], dict[str, str | list[Document]]]
+
+
+class QARecord(BaseModel):
     id: str
     updated_at: str
     title: str
@@ -27,23 +30,24 @@ class PageDoc(BaseModel):
     blocks: list[str]
 
 
-def mk_faq_ai_model(pages: list[PageDoc]) -> VectorStoreRetriever:
-    assert app_settings.OPENAI_API_KEY is not None
+def make_vector_db(records: list[QARecord], results_count: int = 3) -> VectorStoreRetriever:
+    logger.info(f"records count = {len(records)}")
+    assert app_settings.LLM_OPENAI_API_KEY is not None
+
     store = LocalFileStore(CACHE_DIR / "langchain_storage")
-    underlying_embeddings = OpenAIEmbeddings(openai_api_key=app_settings.OPENAI_API_KEY.get_secret_value())  # type: ignore
+    underlying_embeddings = OpenAIEmbeddings(openai_api_key=app_settings.LLM_OPENAI_API_KEY.get_secret_value())  # type: ignore
     embedder = CacheBackedEmbeddings.from_bytes_store(underlying_embeddings, store, namespace=underlying_embeddings.model)
     text_splitter = CharacterTextSplitter(separator="\n", chunk_size=1000, chunk_overlap=100, length_function=len)
-    docs = [Document(page_content="this is faq")]
 
-    logger.info(f"pages count = {len(pages)}")
-    for page in pages:
+    docs = [Document(page_content="this is faq")]
+    for page in records:
         for block in page.blocks:
             for txt in text_splitter.split_text(block):
                 docs.append(Document(page_content=txt, metadata={"id": page.id, "title": page.title, "url": page.url, "updated_at": page.updated_at}))
 
     logger.info(f"documents count = {len(docs)}")
     vector_store = Chroma.from_documents(documents=docs, embedding=embedder)
-    return vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 3})
+    return vector_store.as_retriever(search_type="similarity", search_kwargs={"k": results_count})
 
 
 PROMPT_SYSTEM = """You are an assistant for question-answering tasks. Use {lang} language for answering questions.
@@ -58,13 +62,14 @@ PROMPT_QUESTION = """
 """
 
 
-def mk_chat(pages: list[PageDoc], lang: str = "english") -> Runnable[dict[str, str], dict[str, str | list[Document]]]:
-    assert app_settings.OPENAI_API_KEY is not None
-    retriever = mk_faq_ai_model(pages)
-    llm = ChatOpenAI(model="gpt-3.5-turbo-0125", api_key=str(app_settings.OPENAI_API_KEY.get_secret_value()))  # type: ignore
+def make_faq_llm_chat(records: list[QARecord]) -> Tfaq:
+    assert app_settings.LLM_OPENAI_API_KEY is not None
+    vector_db = make_vector_db(records)
+
+    llm = ChatOpenAI(model=app_settings.LLM_OPENAI_MODEL_NAME, api_key=app_settings.LLM_OPENAI_API_KEY.get_secret_value())  # type: ignore
     prompt = ChatPromptTemplate.from_messages([
-        ("system", PROMPT_SYSTEM.replace("{lang}", lang.upper())),
-        ("human", PROMPT_QUESTION.replace("{lang}", lang.upper())),
+        ("system", PROMPT_SYSTEM.replace("{lang}", app_settings.LANG.upper())),
+        ("human", PROMPT_QUESTION.replace("{lang}", app_settings.LANG.upper())),
     ])
-    question_answer_chain = create_stuff_documents_chain(llm, prompt)
-    return create_retrieval_chain(retriever, question_answer_chain)
+
+    return create_retrieval_chain(vector_db, create_stuff_documents_chain(llm, prompt))

@@ -48,7 +48,7 @@ exclude = ["src/db_main/alembic/", "scripts", ".venv", ".local", ".cache", ""]
 [tool.ruff.lint]
 preview = true
 select = [
-    "E", "F", "W", "C", "I", "N", "UP", "YTT", "ANN", "ASYNC", "TRIO", "B", "C4", "T10", "FA", "ISC", "ICN", "LOG", "G", "PIE", "T20", "PYI", "PT",
+    "E", "F", "W", "C", "I", "N", "UP", "YTT", "ANN", "ASYNC", "ASYNC1", "B", "C4", "T10", "FA", "ISC", "ICN", "LOG", "G", "PIE", "T20", "PYI", "PT",
     "Q", "RSE", "RET", "SLF", "SLOT", "SIM", "TCH", "PTH", "TD", "PD", "PL", "FLY", "NPY", "PERF", "FURB", "RUF",
     # disabled forever:
     # "A", "COM", "CPY", "EM", "EXE", "INP","INT","ARG","FIX",
